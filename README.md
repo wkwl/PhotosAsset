@@ -10,6 +10,7 @@
     vc.delegate          = self;
     
     [self.navigationController pushViewController:vc animated:YES];
+    
 2.PhotosControllerDelegate代理方法如下：
 - (void)getImagesArray:(NSArray<UIImage *> *)imagesArray {                                                                                       
    NSLog(@"图片：%ld",imagesArray.count);
