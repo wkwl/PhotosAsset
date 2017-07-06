@@ -1,0 +1,24 @@
+//
+//  Header.pch
+//  PhotosAsset
+//
+//  Created by 77 on 2017/7/4.
+//  Copyright © 2017年 77. All rights reserved.
+//
+
+#ifndef Header_pch
+#define Header_pch
+
+#import "WKWAsset.h"
+#import "AssetsHelper.h"
+#import "UIImage+Original.h"
+
+#define screenScale [UIScreen mainScreen].scale
+#define SCREEN_W [UIScreen mainScreen].bounds.size.width
+#define SCREEN_H [UIScreen mainScreen].bounds.size.height
+#define kSizeThumbnailCollectionView  ([UIScreen mainScreen].bounds.size.width-10)/4
+
+#define imgNormal @"photo_check_default"
+#define imgSelect @"photo_check_selected"
+
+#endif /* Header_pch */
