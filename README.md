@@ -7,8 +7,8 @@
     vc.delegate          = self;
     [self.navigationController pushViewController:vc animated:YES];
 2.PhotosControllerDelegate代理方法如下：
-- (void)getImagesArray:(NSArray<UIImage *> *)imagesArray {
-    NSLog(@"图片：%ld",imagesArray.count);
+- (void)getImagesArray:(NSArray<UIImage *> *)imagesArray {\n
+   NSLog(@"图片：%ld",imagesArray.count);
 }
 在这个代理方法里，我们能够获取所选图片的image数组。
 
