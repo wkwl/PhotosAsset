@@ -55,12 +55,21 @@ static NSString *FullCellId = @"FullCellId";
     _selectedPhotosIndexArray = [[NSMutableArray alloc] init];
      self.title               = @"相册";
     self.automaticallyAdjustsScrollViewInsets = NO;
-   
+        [self askForAuthorize];
+    NSUserDefaults *firstPush = [NSUserDefaults standardUserDefaults];
+    NSString  *firstStr = [firstPush objectForKey:@"firstPush"];
+    if (firstStr) {
+        [self getImages];
+        [self.view addSubview:self.myCo];
+        [self createNav];
+ 
+    }
+//    [self getImages];
+//    [self.view addSubview:self.myCo];
+//    [self createNav];
+  
     
-    [self getImages];
-    [self.view addSubview:self.myCo];
-    [self createNav];
-    
+  
 }
 
 - (void)didReceiveMemoryWarning {
@@ -70,7 +79,7 @@ static NSString *FullCellId = @"FullCellId";
 - (void)viewWillAppear:(BOOL)animated {
     [super viewWillAppear:animated];
     self.navigationController.navigationBar.hidden = NO;
-      [self askForAuthorize];
+   
 }
 
 - (void)viewDidDisappear:(BOOL)animated {
@@ -81,7 +90,22 @@ static NSString *FullCellId = @"FullCellId";
 - (void)askForAuthorize {
     [PHPhotoLibrary requestAuthorization:^(PHAuthorizationStatus status) {
         if (status == PHAuthorizationStatusAuthorized) {
-            
+            NSUserDefaults *firstPush = [NSUserDefaults standardUserDefaults];
+            NSString  *firstStr = [firstPush objectForKey:@"firstPush"];
+            if (!firstStr) {
+                dispatch_sync(dispatch_get_main_queue(), ^{
+                    
+                    [self getImages];
+                    [self.view addSubview:self.myCo];
+                    [self createNav];
+                    NSUserDefaults *firstPush = [NSUserDefaults standardUserDefaults];
+                    [firstPush setObject:@"first" forKey:@"firstPush"];
+                    
+                });
+
+            }
+          
+
             NSLog(@"相册已授权打开");
         }else{
             NSLog(@"Denied or Restricted");
@@ -246,6 +270,7 @@ static NSString *FullCellId = @"FullCellId";
     if (_assets.count > 0) {
         [self.myCo reloadData];
     }
+
 }
 
 //将选中的图片asset数组转换为image 数组
@@ -327,7 +352,7 @@ static NSString *FullCellId = @"FullCellId";
     _pageIndex = pageNum;
      [_indexLable setText:[NSString stringWithFormat:@"%ld/%ld",_pageIndex+1,self.assets.count]];
     [self imageIsSelect];
-    NSLog(@"这是第：%ld页",pageNum);
+//    NSLog(@"这是第：%ld页",pageNum);
 }
 
 #pragma mark - SmallCellDelegate
