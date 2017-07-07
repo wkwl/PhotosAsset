@@ -55,8 +55,10 @@
 
 - (void)checkBtnIsSelected:(NSString *)selected {
     if ([selected isEqualToString:@"1"]) {
+        _checkBtn.selected = YES;
         [_checkBtn setImage:[UIImage imageNamed:imgSelect] forState:UIControlStateNormal];
     }else {
+        _checkBtn.selected = NO;
         [_checkBtn setImage:[UIImage imageNamed:imgNormal] forState:UIControlStateNormal];
     }
 }
