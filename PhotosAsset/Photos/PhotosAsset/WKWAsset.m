@@ -33,11 +33,14 @@
 
 - (UIImage *)smallImageSize:(CGSize)size asset:(PHAsset *)asset {
     __block UIImage *resultImage;
+    //初始化控制图片请求操作的一些属性
     PHImageRequestOptions *imageRequestOptions = [[PHImageRequestOptions alloc] init];
+    //PHImageRequestOptionsResizeModeExact 则返回图像必须和目标大小相匹配，并且图像质量也为高质量图像
     imageRequestOptions.resizeMode = PHImageRequestOptionsResizeModeExact;
     imageRequestOptions.synchronous = YES;
     
     CGSize imageSize = CGSizeMake(size.width* screenScale,size.height*screenScale);
+    //通过获取的图片资源信息  请求得到image信息
     [[PHImageManager defaultManager] requestImageForAsset:asset targetSize:imageSize contentMode:PHImageContentModeAspectFill options:imageRequestOptions resultHandler:^(UIImage * _Nullable result, NSDictionary * _Nullable info) {
         resultImage  = result;
     }];

@@ -15,7 +15,10 @@
     if (self) {
         [self createImageview];
         [self crateCheckBtn];
-        self.imageView.backgroundColor = [UIColor redColor];
+//        self.imageView.backgroundColor = [UIColor redColor];
+        _takePhotoBtn = [UIButton buttonWithType:UIButtonTypeCustom];
+        _takePhotoBtn.frame = self.bounds;
+        [self addSubview:_takePhotoBtn];
     }
     return self;
 }
@@ -64,10 +67,27 @@
 }
 
 //设置cell里的图片
-- (void)makeImageCell:(PHAsset*)asset {
-    WKWAsset *wkwasset = [[WKWAsset alloc] init];
-    UIImage *image =  [wkwasset smallImageSize:self.bounds.size asset:asset];
-    [self.imageView setImage:image];
+- (void)makeImageCell:(PHAsset*)asset takePhotos:(NSString *)photoStr {
+    if (!photoStr) {
+        WKWAsset *wkwasset = [[WKWAsset alloc] init];
+        UIImage *image =  [wkwasset smallImageSize:self.bounds.size asset:asset];
+        [self.imageView setImage:image];
+        _takePhotoBtn.hidden = YES;
+        _imageView.hidden    = NO;
+        _checkBtn.hidden     = NO;
+    }else {
+        _takePhotoBtn.hidden = NO;
+        _imageView.hidden    = YES;
+        _checkBtn.hidden     = YES;
+        _takePhotoBtn.layer.borderWidth = 1;
+        _takePhotoBtn.layer.borderColor = [UIColor lightGrayColor].CGColor;
+        [self.takePhotoBtn setImage:[UIImage imageNamed:photoStr] forState:UIControlStateNormal];
+        [self.takePhotoBtn addTarget:self action:@selector(takePhoto) forControlEvents:UIControlEventTouchUpInside];
+    }
+}
+//拍照
+- (void)takePhoto {
+    [self.delegate takePhotosAction];
 }
 
 @end

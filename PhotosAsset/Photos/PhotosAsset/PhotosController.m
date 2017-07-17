@@ -9,7 +9,7 @@
 #import "PhotosController.h"
 #import "SmallCell.h"
 #import "FullCell.h"
-@interface PhotosController ()<UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,SmallCellDelegate,UIScrollViewDelegate>{
+@interface PhotosController ()<UICollectionViewDelegate,UICollectionViewDataSource,UICollectionViewDelegateFlowLayout,SmallCellDelegate,UIScrollViewDelegate,UIImagePickerControllerDelegate,UINavigationControllerDelegate>{
     UIView       *_navagationView;
     UIView       *_barView;
     UIButton     *_okButton;
@@ -59,7 +59,7 @@ static NSString *FullCellId = @"FullCellId";
     NSUserDefaults *firstPush = [NSUserDefaults standardUserDefaults];
     NSString  *firstStr = [firstPush objectForKey:@"firstPush"];
     if (firstStr) {
-        [self getImages];
+        [self getImages:NO];
         [self.view addSubview:self.myCo];
         [self createNav];
  
@@ -95,7 +95,7 @@ static NSString *FullCellId = @"FullCellId";
             if (!firstStr) {
                 dispatch_sync(dispatch_get_main_queue(), ^{
                     
-                    [self getImages];
+                    [self getImages:NO];
                     [self.view addSubview:self.myCo];
                     [self createNav];
                     NSUserDefaults *firstPush = [NSUserDefaults standardUserDefaults];
@@ -110,15 +110,15 @@ static NSString *FullCellId = @"FullCellId";
         }else{
             NSLog(@"Denied or Restricted");
             dispatch_async(dispatch_get_main_queue(), ^{
-                [self openAuthorization];
+                [self openAuthorization:@"相册权限未开启" message:@"相册权限未开启，请在设置中选择当前应用,开启相册功能"];
             });
         }
     }];
 }
 
 //判断是否开启了相册权限
-- (void)openAuthorization {
-    UIAlertController *alert = [UIAlertController alertControllerWithTitle:@"相册权限未开启" message:@"相册权限未开启，请在设置中选择当前应用,开启相册功能" preferredStyle:UIAlertControllerStyleAlert];
+- (void)openAuthorization:(NSString *)title message:(NSString *)message {
+    UIAlertController *alert = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleAlert];
     
     UIAlertAction *open = [UIAlertAction actionWithTitle:@"立即开启" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
         [[UIApplication sharedApplication] openURL:[NSURL URLWithString:UIApplicationOpenSettingsURLString]];
@@ -261,11 +261,17 @@ static NSString *FullCellId = @"FullCellId";
     [self.delegate getImagesArray:[self selectImages]];
 }
 #pragma mark -getImage
-- (void)getImages {
+- (void)getImages:(BOOL)isFromTakePhoto {
+    [_assets removeAllObjects];
      AssetsHelper *ImageAssets = [[AssetsHelper alloc] init];
     [_assets addObjectsFromArray:[ImageAssets getImageAssetSArray]];
+     [_ImagesSelectedArray removeAllObjects];
     for (int i=0; i<_assets.count; i++) {
         [_ImagesSelectedArray addObject:@"0"];
+    }
+    if (isFromTakePhoto) {
+        [_ImagesSelectedArray replaceObjectAtIndex:self.assets.count-1 withObject:@"1"];
+        [self.selectedArray addObject:[self.assets lastObject]];
     }
     if (_assets.count > 0) {
         [self.myCo reloadData];
@@ -288,7 +294,11 @@ static NSString *FullCellId = @"FullCellId";
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
     NSLog(@"----%ld",self.assets.count);
-       return self.assets.count;
+    if (collectionView.tag == 1000) {
+        return self.assets.count+1;
+    }
+    return self.assets.count;
+
 }
 
 - (NSInteger)numberOfSectionsInCollectionView:(UICollectionView *)collectionView {
@@ -297,14 +307,19 @@ static NSString *FullCellId = @"FullCellId";
 }
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     if (collectionView.tag == 1000) {
-        PHAsset *asset = self.assets[indexPath.item];
         SmallCell *cell= [collectionView dequeueReusableCellWithReuseIdentifier:PhotoCellId forIndexPath:indexPath];
         cell.checkBtn.tag = indexPath.row+100;
         cell.imageView.tag = indexPath.row;
-        //传递图片资源信息
-        [cell makeImageCell:asset];
-        //传递图片是否被选中的状态信息
-        [cell checkBtnIsSelected:self.ImagesSelectedArray[indexPath.item]];
+        if (indexPath.row <self.assets.count) {
+            PHAsset *asset = self.assets[indexPath.item];
+            //传递图片资源信息
+            [cell makeImageCell:asset takePhotos:nil];
+            //传递图片是否被选中的状态信息
+            [cell checkBtnIsSelected:self.ImagesSelectedArray[indexPath.item]];
+           
+        }else {
+            [cell makeImageCell:nil takePhotos:@"Camaral"];
+        }
         cell.delegate = self;
         return cell;
 
@@ -368,7 +383,6 @@ static NSString *FullCellId = @"FullCellId";
 //    [self.FullCollectionView scrollToItemAtIndexPath:indexPath atScrollPosition:UICollectionViewScrollPositionNone animated:YES];
     //2.第二种方式适用于所有情况
     [self.FullCollectionView setContentOffset:CGPointMake(index*SCREEN_W, 0) animated:YES];
-   
     [self.FullCollectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:index inSection:0]]];
 
     [UIView animateWithDuration:0.4 animations:^{
@@ -399,6 +413,46 @@ static NSString *FullCellId = @"FullCellId";
     }
 }
 
+//使用相机的代理
+- (void)takePhotosAction {
+    NSString *mediaType = AVMediaTypeVideo;
+    AVAuthorizationStatus authStatus = [AVCaptureDevice authorizationStatusForMediaType:mediaType];
+    if(authStatus == AVAuthorizationStatusRestricted || authStatus == AVAuthorizationStatusDenied){
+        [self openAuthorization:@"相机权限未开启" message:@"相机权限未开启，请在设置中选择当前应用,开启相册功能"];
+        NSLog(@"相机权限受限");
+        return;
+    }
+    UIImagePickerController *pickerController = [[UIImagePickerController alloc]init];
+    pickerController.allowsEditing = NO;//此处若设为NO 下面代理方法需如此设置才能获取图(UIImage *image = info[UIImagePickerControllerOriginalImage];)
+    pickerController.delegate = self;
+    pickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
+    pickerController.modalPresentationStyle =  UIModalPresentationOverCurrentContext;
+//    pickerController.showsCameraControls = NO;
+   [self presentViewController:pickerController animated:YES completion:nil];
+}
+
+- (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker {
+     [self dismissViewControllerAnimated:YES completion:nil];
+}
+- (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary<NSString *,id> *)info {
+    UIImage *image = info[UIImagePickerControllerOriginalImage];
+    NSData *data = UIImageJPEGRepresentation(image, 0.3);
+    UIImage *image1 = [UIImage imageWithData:data];
+     NSLog(@"oooppp%@",image1);
+    [self savePhotos:image1];
+    [_assets removeAllObjects];
+    [self getImages:YES];
+    [self dismissViewControllerAnimated:YES completion:nil];
+}
+// savePhotos (调用系统相机拍下一张照片，准备保存到系统相机胶卷，并获取到图片信息)
+- (void)savePhotos:(UIImage *)image {
+    NSError *error1 = nil;
+    __block PHObjectPlaceholder *createdAsset = nil;
+    [[PHPhotoLibrary sharedPhotoLibrary] performChangesAndWait:^{
+        createdAsset = [PHAssetCreationRequest creationRequestForAssetFromImage:image].placeholderForCreatedAsset;
+    } error:&error1];
+    
+}
 #pragma mark -FullCellDelegate
 
 #pragma mark - LazyLoad
