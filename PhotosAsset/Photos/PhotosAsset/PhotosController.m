@@ -144,7 +144,8 @@ static NSString *FullCellId = @"FullCellId";
 
 //创建全屏图片导航等
 - (void)creatFullUI {
-    _navagationView = [[UIView alloc]initWithFrame:CGRectMake(0, 0,SCREEN_W, 64)];
+    UIView *navagationV = [[UIView alloc]initWithFrame:CGRectMake(0, 0,SCREEN_W, 64)];
+    _navagationView     = navagationV;
     _navagationView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.6];
     UIButton *leftButton = [[UIButton alloc] initWithFrame: CGRectMake(15, 25, 32,24)];
     [leftButton setImage:[[UIImage imageNamed:@"back"] original]forState:UIControlStateNormal];
