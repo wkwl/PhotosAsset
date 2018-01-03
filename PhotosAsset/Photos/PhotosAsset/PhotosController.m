@@ -241,7 +241,6 @@ static NSString *FullCellId = @"FullCellId";
     [UIView animateWithDuration:0.4 animations:^{
         _barView.frame                = CGRectMake(SCREEN_W,SCREEN_H-49,0,49);
         _navagationView.frame         = CGRectMake(SCREEN_W,0,0,64);
-
         self.FullCollectionView.frame = CGRectMake(SCREEN_W, 0, 0, SCREEN_H);
     } completion:^(BOOL finished) {
         [_navagationView removeFromSuperview];
