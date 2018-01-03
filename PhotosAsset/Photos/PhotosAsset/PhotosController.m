@@ -392,6 +392,8 @@ static NSString *FullCellId = @"FullCellId";
         _navagationView.frame         = CGRectMake(SCREEN_W,0,SCREEN_W,64);
 
     } completion:^(BOOL finished) {
+        [_barView removeFromSuperview];
+        [_navagationView removeFromSuperview];
         [self creatFullUI];
         [_indexLable setText:[NSString stringWithFormat:@"%ld/%ld",index+1,self.assets.count]];
 
