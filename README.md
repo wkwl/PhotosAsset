@@ -1,6 +1,6 @@
 # PhotosAsset
 自定义照片选择器基于PHAsset
-该实例代码在photos 中，外部存在的photosAsset无使用代码，photos内部存在的photosAsset为关键代码
+该实例代码在项目工程photos文件夹 中，外部存在的photosAsset无使用代码，photos内部存在的photosAsset为关键代码
 1.使用相册时 主要调用代码如下（首先添加PhotosControllerDelegate）：  
 
     PhotosController *vc = [[PhotosController alloc] init];
